@@ -1,8 +1,4 @@
-"""Lambda function for the dashboard"""
-
-
-def lambda_handler(event, context):
-    return "Hello world"
+"""Code for the Streamlit dashboard"""
 
 
 if __name__ == "__main__":
