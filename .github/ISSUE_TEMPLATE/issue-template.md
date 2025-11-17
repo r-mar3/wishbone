@@ -7,13 +7,15 @@ assignees: ''
 
 ---
 
-#Description
+# Description
 Enter description here, include user stories if applicable
 
-#Checklist
+# Checklist
 - optional
 - example
 
-#Urgency
-##High / Low
+# Urgency
+- High / Low
+
+# Deadline
 Finish by today afternoon (17/11/2025)
