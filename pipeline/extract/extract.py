@@ -1,4 +1,4 @@
-"""Lambda function for deleting user personal data upon request"""
+"""Lambda function which extracts data from Steam and Epic Games"""
 
 
 def lambda_handler(event, context):

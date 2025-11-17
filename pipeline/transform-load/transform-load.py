@@ -1,4 +1,4 @@
-"""Lambda function for deleting user personal data upon request"""
+"""Lambda function for the transform and load stages"""
 
 
 def lambda_handler(event, context):

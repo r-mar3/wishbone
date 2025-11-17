@@ -1,4 +1,4 @@
-"""Lambda function for deleting user personal data upon request"""
+"""Lambda function checking for extracting the latest discounts from the S3"""
 
 
 def lambda_handler(event, context):
