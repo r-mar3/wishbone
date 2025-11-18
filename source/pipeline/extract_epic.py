@@ -3,6 +3,7 @@ import aiohttp
 import json
 import requests
 from bs4 import BeautifulSoup
+from forex_python.converter import CurrencyRates
 
 BASE_DIR = "https://www.gogdb.org/data/products"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
@@ -11,7 +12,7 @@ CONCURRENCY = 100
 
 
 async def fetch_json(session, url):
-    """Fetch JSON; return None if failed."""
+    """Fetch JSON: return None if failed."""
     try:
         async with session.get(url) as r:
             if r.status == 200:
@@ -21,7 +22,7 @@ async def fetch_json(session, url):
     return None
 
 
-async def extract_product(session, product_id: int):
+async def extract_product(session, product_id: int, usd_to_gbp: float):
     """Extract product.json + prices.json from a single product folder."""
     product_url = f"{BASE_DIR}/{product_id}/product.json"
     prices_url = f"{BASE_DIR}/{product_id}/prices.json"
@@ -38,8 +39,10 @@ async def extract_product(session, product_id: int):
     if not name:
         return None
 
-    base_price = None
-    final_price = None
+    base_price_cents = None
+    final_price_cents = None
+    base_price_gbp_pence = None
+    final_price_gbp_pence = None
 
     if prices_data:
         history = (
@@ -51,18 +54,28 @@ async def extract_product(session, product_id: int):
         if history:
             history.sort(key=lambda x: x.get("date", ""), reverse=True)
             latest = history[0]
-            base_price = latest.get("price_base")
-            final_price = latest.get("price_final")
+            base_price_cents = latest.get("price_base")
+            final_price_cents = latest.get("price_final")
+
+            if base_price_cents is not None:
+                base_usd = base_price_cents / 100
+                base_gbp = base_usd * usd_to_gbp
+                base_price_gbp_pence = int(round(base_gbp * 100))
+
+            if final_price_cents is not None:
+                final_usd = final_price_cents / 100
+                final_gbp = final_usd * usd_to_gbp
+                final_price_gbp_pence = int(round(final_gbp * 100))
 
     return {
         "product_id": product_id,
         "name": name,
-        "base_price": base_price,
-        "final_price": final_price
+        "base_price_gbp_pence": base_price_gbp_pence,
+        "final_price_gbp_pence": final_price_gbp_pence
     }
 
 
-async def extract_batch(product_ids):
+async def extract_batch(product_ids, usd_to_gbp: float):
     """Async extract for a batch of product IDs."""
     connector = aiohttp.TCPConnector(limit=CONCURRENCY)
     timeout = aiohttp.ClientTimeout(total=600)
@@ -73,7 +86,8 @@ async def extract_batch(product_ids):
         headers=HEADERS
     ) as session:
 
-        tasks = [extract_product(session, pid) for pid in product_ids]
+        tasks = [extract_product(session, pid, usd_to_gbp)
+                 for pid in product_ids]
         results = []
 
         for task in asyncio.as_completed(tasks):
@@ -104,7 +118,12 @@ if __name__ == "__main__":
     product_ids = get_all_product_ids()
     print(f"Found {len(product_ids)} products")
 
-    results = asyncio.run(extract_batch(product_ids))
+    print("Fetching USD -> GBP conversion rate")
+    c = CurrencyRates()
+    usd_to_gbp_rate = c.get_rate("USD", "GBP")
+    print(f"Current USD -> GBP rate: {usd_to_gbp_rate}")
+
+    results = asyncio.run(extract_batch(product_ids, usd_to_gbp_rate))
 
     print(f"Extracted {len(results)} products")
 
