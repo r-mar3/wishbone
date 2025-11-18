@@ -5,6 +5,6 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY extract_latest.py .
+COPY tracking.py .
 
-CMD [ "extract_latest.lambda_handler" ]
+CMD [ "tracking.lambda_handler" ]
