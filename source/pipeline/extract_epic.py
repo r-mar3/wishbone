@@ -2,17 +2,29 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from epicstore_api import EpicGamesStoreAPI
 import threading
+import pprint
 
 api = EpicGamesStoreAPI()
 lock = threading.Lock()
 
 
-def fetch_game(slug, namespace):
+def fetch_game(slug: str | None, namespace: str | None) -> dict:
     """Fetch a single game and return data"""
     try:
         product = api.get_product(slug)
 
-        title = product.get("title")
+    except Exception:
+        return {
+            "id": slug,
+            "title": slug,
+            "namespace": namespace,
+            "slug": slug,
+            "retailPrice": 0,
+            "discountPrice": 0
+        }
+
+    try:
+        title = product.get("title", slug)
         pages = product.get("pages", [])
 
         first_offer = None
@@ -25,7 +37,7 @@ def fetch_game(slug, namespace):
         retail_price = 0
         discount_price = 0
         game_id = None
-        namespace_final = namespace
+        namespace_final = product.get("namespace") or namespace
 
         if first_offer:
             offer_ns, offer_id = first_offer
@@ -34,17 +46,14 @@ def fetch_game(slug, namespace):
                 api.OfferData(offer_ns, offer_id))[0]
             catalog = offer_data["data"]["Catalog"]["catalogOffer"]
 
-            game_id = catalog.get("id")
-            namespace_final = catalog.get("namespace")
+            game_id = catalog.get("id", game_id)
+            namespace_final = catalog.get("namespace", namespace_final)
 
-            price = catalog.get("price", {}).get("totalPrice", {})
+            total_price = (catalog.get("price", {}).get("totalPrice", {}))
 
-            retail_price = price.get("originalPrice", 0)
-            discount_price = price.get("discountPrice", 0)
+            retail_price = total_price.get("originalPrice", 0)
+            discount_price = total_price.get("discountPrice", 0)
         else:
-            game_id = product.get("id") or slug
-            namespace_final = product.get("namespace") or namespace
-
             prod_price = product.get("price", {})
             total_price = prod_price.get("totalPrice") or {}
 
@@ -65,70 +74,34 @@ def fetch_game(slug, namespace):
         return None
 
 
-def extract_epic_games(limit: int | None = None) -> list[dict]:
+def extract_all_games(max_workers=20) -> list[dict]:
     """Extract all games and their prices from Epic Games Store"""
 
-    api = EpicGamesStoreAPI()
-
     product_map = api.get_product_mapping()
+    product_items = list(product_map.items())
 
-    all_games = []
-    count = 0
+    results = []
 
-    for slug, namespace in product_map.items():
-        if limit is not None and count >= limit:
-            break
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {
+            executor.submit(fetch_game, slug, namespace): (slug, namespace)
+            for slug, namespace in product_items
+        }
 
-        try:
-            product = api.get_product(slug)
+        for future in as_completed(futures):
+            data = future.result()
+            if data:
+                with lock:
+                    results.append(data)
 
-            title = product.get("title")
-            pages = product.get("pages", [])
-
-            offer = next((page for page in pages if page.get(
-                "offer") and page["offer"].get("id")), None)
-
-            if not offer:
-                continue
-
-            offer_ns = offer["namespace"]
-            offer_id = offer["offer"]["id"]
-
-            offer_data = api.get_offers_data(
-                api.OfferData(offer_ns, offer_id))[0]
-
-            catalog_offer = offer_data["data"]["Catalog"]["catalogOffer"]
-            price_info = catalog_offer.get("price", {}).get("totalPrice", {})
-
-            all_games.append({
-                "id": catalog_offer.get("id"),
-                "title": title,
-                "namespace": catalog_offer.get("namespace"),
-                "slug": slug,
-                "price_original": price_info.get("originalPrice"),
-                "price_discount": price_info.get("discountPrice"),
-                "currency": price_info.get("currencyCode")
-            })
-
-            count += 1
-
-        except Exception:
-            continue
-
-    return all_games
+    return results
 
 
 if __name__ == "__main__":
-    product_map = api.get_product_mapping()
+    print("Extracting ALL Epic Games")
 
-    slug, namespace = next(iter(product_map.items()))
+    all_games = extract_all_games(max_workers=20)
+    print(f"\n Extracted {len(all_games)} games\n")
 
-    print("Testing first game: ")
-    print("Slug: ", slug)
-    print("Namespace: ", namespace)
-    print("-----------")
-
-    result = fetch_game(slug, namespace)
-
-    print("Result: ")
-    print(result)
+    print("Example preview (first 10): ")
+    pprint.pprint(all_games[:50])
