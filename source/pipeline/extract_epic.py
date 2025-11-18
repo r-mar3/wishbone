@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import json
 import requests
+import os
 from bs4 import BeautifulSoup
 from forex_python.converter import CurrencyRates
 
@@ -127,7 +128,9 @@ if __name__ == "__main__":
 
     print(f"Extracted {len(results)} products")
 
-    with open("products.json", "w") as f:
+    os.makedirs("data", exist_ok=True)
+
+    with open("data/products.json", "w") as f:
         json.dump(results, f, indent=4)
 
     print("Saved results to products.json")
