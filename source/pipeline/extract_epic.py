@@ -97,11 +97,41 @@ def extract_all_games(max_workers=20) -> list[dict]:
     return results
 
 
+def extract_real_games():
+
+    response = api.fetch_store_games(
+        count=10000,
+        product_type="games",
+        allow_countries="GB",
+        with_price=True,
+        sort_by="title",
+        sort_dir="ASC"
+    )
+
+    elements = response.get("elements", {})
+
+    results = []
+    for item in elements:
+        total_price = item.get("price", {}).get("totalPrice", {})
+
+        results.append({
+            "id": item.get("id"),
+            "title": item.get("title"),
+            "namespace": item.get("namespace"),
+            "slug": item.get("productSlug"),
+            "retailPrice": total_price.get("originalPrice", 0),
+            "discountPrice": total_price.get("discountPrice", 0)
+        })
+
+    return results
+
+
 if __name__ == "__main__":
     print("Extracting ALL Epic Games")
 
-    all_games = extract_all_games(max_workers=20)
+    all_games = extract_real_games()
+
     print(f"\n Extracted {len(all_games)} games\n")
 
-    print("Example preview (first 10): ")
+    print("Example preview (first 50): ")
     pprint.pprint(all_games[:50])
