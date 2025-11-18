@@ -24,7 +24,6 @@ CREATE TABLE platform(
 
 CREATE TABLE listing(
     listing_id INT GENERATED ALWAYS AS identity (MINVALUE 1 START WITH 1 INCREMENT BY 1),
-    platform_code TEXT NOT NULL,
     game_id INT NOT NULL,
     platform_id INT NOT NULL,
     price INT NOT NULL,
