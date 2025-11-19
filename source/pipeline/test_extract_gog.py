@@ -1,6 +1,7 @@
-import pytest
-import asyncio
+"""Tests for the extract_gog script"""
+
 from unittest.mock import AsyncMock, MagicMock, patch
+import pytest
 from extract_gog import fetch_json, extract_product, extract_batch, get_all_product_ids
 
 
