@@ -1,8 +1,7 @@
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
-
-from source.pipeline.extract_gog import fetch_json, extract_product, extract_batch, get_all_product_ids
+from ..extract_gog import fetch_json, extract_product, extract_batch, get_all_product_ids
 
 
 @pytest.fixture

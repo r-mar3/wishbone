@@ -28,6 +28,7 @@ async def fetch_json(session: aiohttp.ClientSession, url: str):
                 return None
             if r.status == 500:
                 print(f"500: Server error for {url}")
+                return None
 
             print(f"{r.status}: Error for {url}")
             return None
