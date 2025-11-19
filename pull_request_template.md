@@ -1,9 +1,10 @@
 ## Description
 A brief summary of the changes.
 
-## Changes
-Closes: #1 (change the number)
+## Closes issues
+#1 (change the number)
 
+## Changes
 - List the main changes here.
 
 ## Checklist
