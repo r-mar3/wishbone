@@ -8,7 +8,7 @@ from forex_python.converter import CurrencyRates
 
 BASE_DIR = "https://www.gogdb.org/data/products"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-OUTPUT_PATH = 'data/products.json'
+OUTPUT_PATH = 'data/gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
 
