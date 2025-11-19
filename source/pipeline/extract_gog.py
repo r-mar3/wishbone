@@ -1,10 +1,9 @@
 """Extract script which gets data from GOG DB"""
-
+import json
+import os
 import asyncio
 import aiohttp
-import json
 import requests
-import os
 from bs4 import BeautifulSoup
 from forex_python.converter import CurrencyRates
 
@@ -15,7 +14,7 @@ CONCURRENCY = 100
 TIMEOUT = 600
 
 
-async def fetch_json(session, url):
+async def fetch_json(session: aiohttp.ClientSession, url: str):
     """Fetch JSON: return None if failed."""
     try:
         async with session.get(url) as r:
@@ -38,7 +37,7 @@ async def fetch_json(session, url):
         return None
 
 
-async def extract_product(session, product_id: int, usd_to_gbp: float):
+async def extract_product(session: aiohttp.ClientSession, product_id: int, usd_to_gbp: float) -> dict | None:
     """Extract product.json + prices.json from a single product folder."""
     product_url = f"{BASE_DIR}/{product_id}/product.json"
     prices_url = f"{BASE_DIR}/{product_id}/prices.json"
@@ -91,7 +90,7 @@ async def extract_product(session, product_id: int, usd_to_gbp: float):
     }
 
 
-async def extract_batch(product_ids, usd_to_gbp: float):
+async def extract_batch(product_ids: list[int], usd_to_gbp: float) -> list[dict]:
     """Async extract for a batch of product IDs."""
     connector = aiohttp.TCPConnector(limit=CONCURRENCY)
     timeout = aiohttp.ClientTimeout(total=TIMEOUT)
@@ -114,9 +113,9 @@ async def extract_batch(product_ids, usd_to_gbp: float):
         return results
 
 
-def get_all_product_ids():
+def get_all_product_ids() -> list[int]:
     """Scrape folder listing to get ALL product IDs."""
-    r = requests.get(BASE_DIR + "/", headers=HEADERS)
+    r = requests.get(BASE_DIR + "/", headers=HEADERS, timeout=TIMEOUT)
     soup = BeautifulSoup(r.text, "html.parser")
 
     ids = []
@@ -130,6 +129,7 @@ def get_all_product_ids():
 
 
 def extract_gog():
+    """Extract all game data from GOG DB"""
     print("Fetching all product IDs...")
     product_ids = get_all_product_ids()
     print(f"Found {len(product_ids)} products")
@@ -145,7 +145,7 @@ def extract_gog():
 
     os.makedirs("data", exist_ok=True)
 
-    with open(OUTPUT_PATH, "w") as f:
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=4)
 
     print("Saved results to products.json")
