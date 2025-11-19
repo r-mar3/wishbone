@@ -65,7 +65,7 @@ def output(results) -> None:
         os.mkdir(FOLDER_PATH)
 
     with open(FILEPATH, 'w+') as f:
-        json.dump(results, f)
+        json.dump(results, f, indent=4)
 
 
 if __name__ == '__main__':
