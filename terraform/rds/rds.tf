@@ -19,6 +19,25 @@ resource "aws_security_group_rule" "allow_postgres_ingress_rule" {
     cidr_blocks       = ["0.0.0.0/0"]
 }
 
+resource "aws_security_group_rule" "allow_http_egress_rule" {
+    security_group_id = aws_security_group.c20-wishbone-sg.id
+    type              = "egress"
+    from_port         = 80
+    protocol          = -1
+    to_port           = 80
+    cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "allow_http_ingress_rule" {
+    security_group_id = aws_security_group.c20-wishbone-sg.id
+    type              = "ingress"
+    from_port         = 80
+    protocol          = -1
+    to_port           = 80
+    cidr_blocks       = ["0.0.0.0/0"]
+}
+
+
 
 resource "aws_db_subnet_group" "c20-wishbone-subnet-group" {
   name = "c20-wishbone-subnet-group"
