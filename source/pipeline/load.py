@@ -13,7 +13,7 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
-DATA_PATH = "data/cleaned_data.json"
+DATA_PATH = "data/gog_products.json"
 
 
 def get_connection():

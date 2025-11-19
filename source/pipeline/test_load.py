@@ -50,5 +50,56 @@ def test_insert_listing_calls_execute():
     insert_listing(cur, 1, 2, 1000, 50, date(2025, 1, 1))
 
     cur.execute.assert_called_once()
-    _, args = cur.execute.call_args
-    assert args[1] == (1, 2, 1000, 50, date(2025, 1, 1))
+    _, params = cur.execute.call_args[0]
+    assert params == (1, 2, 1000, 50, date(2025, 1, 1))
+
+
+@patch("load.json.load")
+@patch("load.get_connection")
+def test_load_data_success(mock_conn_function, mock_json_load):
+    mock_json_load.return_value = [{
+        "game_name": "Bob",
+        "retail_price": 5000,
+        "platform_name": "steam",
+        "listing_date": "2025-01-01",
+        "discount_percent": 50,
+        "price": 2000
+    }]
+
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conn_function.return_value = mock_conn
+
+    mock_cursor.fetchone.side_effect = [None, (1,), None, (5,)]
+
+    load_data()
+
+    assert mock_conn.commit.call_count == 1
+    assert mock_cursor.close.called
+    assert mock_conn.close.called
+
+
+@patch("load.json.load")
+@patch("load.get_connection")
+def test_load_data_error(mock_conn_function, mock_json_load):
+    mock_json_load.return_value = [{
+        "game_name": "Bob",
+        "retail_price": 5000,
+        "platform_name": "steam",
+        "listing_date": "2025-01-01",
+        "discount_percent": 50,
+        "price": 2000
+    }]
+
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_cursor.execute.side_effect = Exception("DB error")
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conn_function.return_value = mock_conn
+
+    load_data()
+
+    mock_conn.rollback.assert_called_once()
+    mock_cursor.close.assert_called_once()
+    mock_conn.close.assert_called_once()
