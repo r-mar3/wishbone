@@ -4,6 +4,7 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 from datetime import date
+from os import environ
 
 load_dotenv()
 
@@ -19,11 +20,11 @@ DATA_PATH = "data/clean_data.json"
 def get_connection():
     """Create and return new DB connection"""
     return psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        dbname=DB_NAME
+        host=environ['RDS_HOST'],
+        port=environ['PORT'],
+        user=environ['RDS_USERNAME'],
+        password=environ['RDS_PASSWORD'],
+        dbname=environ['DB_NAME']
     )
 
 
@@ -96,12 +97,12 @@ def load_data() -> None:
 
     try:
         for product in data:
-            game_name = product["game_name"]
-            retail_price = product["retail_price"]
-            platform_name = product["platform_name"]
-            listing_date = product["listing_date"]
-            discount_percent = product["discount_percent"]
-            price = product["final_price"]
+            game_name = product.get("game_name")
+            retail_price = product.get("retail_price")
+            platform_name = product.get("platform_name")
+            listing_date = product.get("listing_date")
+            discount_percent = product.get("discount_percent")
+            price = product.get("final_price")
 
             game_id = get_or_create_game(cur, game_name, retail_price)
             platform_id = get_or_create_platform(cur, platform_name)
