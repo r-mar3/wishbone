@@ -1,4 +1,7 @@
 awswrangler
 pandas
+pyarrow
+boto3
 python-dotenv
 SQLAlchemy
+psycopg2-binary
