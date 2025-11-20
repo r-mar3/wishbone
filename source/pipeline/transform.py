@@ -1,9 +1,9 @@
 """Script for transforming data for storage in RDS"""
 
-import pandas as pd
-import os
 import json
+import os
 from datetime import datetime
+import pandas as pd
 
 
 DIRECTORY = 'data/'
@@ -18,7 +18,7 @@ def transform_source(filename: str) -> pd.DataFrame:
     and transforms it to the format expected by load script
     """
     # Read data from file
-    with open(f'{DIRECTORY}{filename}') as f:
+    with open(f'{DIRECTORY}{filename}', 'r', encoding='utf-8') as f:
         source_data = json.load(f)
 
     # Create dataframe
@@ -28,7 +28,7 @@ def transform_source(filename: str) -> pd.DataFrame:
     source_dataframe.dropna(subset=['base_price_gbp_pence'], inplace=True)
 
     # Create boolean series to check which values to calculate discount for (avoid dividing by 0)
-    valid = (source_dataframe["base_price_gbp_pence"] > 0)
+    valid = source_dataframe["base_price_gbp_pence"] > 0
 
     # Calculate discount percentage
     source_dataframe["discount_percent"] = (
@@ -75,6 +75,10 @@ def transform_source(filename: str) -> pd.DataFrame:
 
 def transform_all():
     """Iterates through available sources and transforms raw data from them, saving to JSON"""
+    # Check for data folder
+    if not os.path.exists(DIRECTORY):
+        raise FileNotFoundError("'data/' directory does not exist")
+
     # Get dataframes from each source and append to list
     all_data_sources = []
     for source_filename in SOURCE_FILES:
