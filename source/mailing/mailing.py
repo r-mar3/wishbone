@@ -83,4 +83,40 @@ def lambda_handler(event, context):
 
     price_dropped_emails = get_all_emails_with_game(games_df)
 
-    ses = boto3.client("ses")
+    ses_client = boto3.client("ses", region_name="eu-west-2")
+
+    SENDER_EMAIL = "ronnm03@gmail.com"
+
+    CHARSET = "UTF-8"
+
+    total_sent = 0
+
+    for entry in price_dropped_emails:
+        emails = entry["emails"]
+        if emails is None:
+            continue
+
+        for email in emails:
+            ses_client.send_email(
+                Source=SENDER_EMAIL,
+                Destination={"ToAddresses": [email]},
+                Message={
+                    "Body": {
+                        "Text": {
+                            "Charset": CHARSET,
+                            "Data": "Price dropped game!! A game you are tracking has dropped in price!",
+                        }
+                    },
+                    "Subject": {
+                        "Charset": CHARSET,
+                        "Data": "PRICE DROP!!!",
+                    },
+                },
+            )
+            total_sent += 1
+
+    return {"message": f"send {total_sent} emails"}
+
+
+if __name__ == "__main__":
+    print(lambda_handler({}, None))
