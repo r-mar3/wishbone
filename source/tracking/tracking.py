@@ -1,17 +1,24 @@
 """Lambda function for deleting user personal data upon request"""
-import os
+from os import environ
 from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extensions import connection
 
 
 def get_connection() -> connection:
-    conn = psycopg2.connect()
+    conn = psycopg2.connect(f"""
+                            dbname={environ['DB_NAME']}
+                            user={environ['DB_USER']}
+                            password={environ['DB_PASSWORD']}
+                            host={environ['DB_HOST']}
+                            port={environ['DB_PORT']}
+                            """)
+    return conn
 
 
 def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
     insert_query = """
-                    INSERT INTO tracking(
+                    INSERT INTO wishbone."tracking"(
                         email, game_id)
                     VALUES
                         (%s, %s)
@@ -20,7 +27,10 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
 
     cur = conn.cursor()
 
-    cur.execute(insert_query, (email, game_id,))
+    try:
+        cur.execute(insert_query, (email, game_id,))
+    except psycopg2.errors.ForeignKeyViolation:
+        return {'status': 'error', 'msg': f'game with id {game_id} is not on record'}
 
     cur.close()
 
@@ -31,7 +41,7 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
 
 def remove_email(email: str, conn: connection) -> dict:
     delete_query = """
-                    DELETE FROM tracking
+                    DELETE FROM wishbone."tracking"
                     WHERE email = %s
                     RETURNING tracking_id;
                     """
@@ -39,8 +49,6 @@ def remove_email(email: str, conn: connection) -> dict:
     cur = conn.cursor()
 
     cur.execute(delete_query, (email,))
-
-    deleted_id = cur.fetchall()
 
     conn.commit()
 
@@ -62,5 +70,5 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     load_dotenv()
-    lambda_handler(
-        {'subscribe': False, 'email': 'test@test.com', 'game_id': 1})
+    print(lambda_handler(
+        {'subscribe': False, 'email': 'test@test.com', 'game_id': 2}, {}))
