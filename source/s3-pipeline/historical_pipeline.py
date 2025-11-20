@@ -16,7 +16,7 @@ S3_PLATFORM = f"{BASE_S3_PATH}/platform/platform.parquet"
 S3_LISTING_BASE = f"{BASE_S3_PATH}/listing/"
 
 DB_HOST = os.getenv("DB_HOST")
-DB_USER = os.getenv("DB_USER"),
+DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 DB_PORT = os.getenv("DB_PORT")
@@ -52,7 +52,7 @@ def load_dim_table(df: pd.DataFrame, s3_path: str):
         df=df,
         path=s3_path,
         index=False,
-        dataset=False,
+        dataset=True,
         mode="append" if exists else "overwrite"
     )
 
