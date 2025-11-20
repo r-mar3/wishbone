@@ -74,7 +74,7 @@ def output(results: list[dict]) -> None:
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
 
-    with open(FILEPATH, 'w+') as f:
+    with open(FILEPATH, 'w+', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
 
 
