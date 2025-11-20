@@ -38,7 +38,7 @@ async def fetch_json(session: aiohttp.ClientSession, url: str):
         return None
 
 
-async def extract_product(session: aiohttp.ClientSession, product_id: int, usd_to_gbp: float) -> dict | None:
+async def extract_product(session: aiohttp.ClientSession, product_id: int, usd_to_gbp: float) -> dict:
     """Extract product.json + prices.json from a single product folder."""
     product_url = f"{BASE_DIR}/{product_id}/product.json"
     prices_url = f"{BASE_DIR}/{product_id}/prices.json"
@@ -136,8 +136,13 @@ def extract_gog():
     print(f"Found {len(product_ids)} products")
 
     print("Fetching USD -> GBP conversion rate")
-    c = CurrencyRates()
-    usd_to_gbp_rate = c.get_rate("USD", "GBP")
+    try:
+        c = CurrencyRates()
+        usd_to_gbp_rate = c.get_rate("USD", "GBP")
+    except:
+        print("RatesNotAvailableError - Forex API is currently unavailable")
+        usd_to_gbp_rate = 0.77  # default in case Forex API is down
+
     print(f"Current USD -> GBP rate: {usd_to_gbp_rate}")
 
     results = asyncio.run(extract_batch(product_ids, usd_to_gbp_rate))
