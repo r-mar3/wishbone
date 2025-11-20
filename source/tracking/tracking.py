@@ -15,7 +15,7 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
                         email, game_id)
                     VALUES
                         (%s, %s)
-                    ON CONFLICT DO NOTHING
+                    ON CONFLICT DO NOTHING;
                     """
 
     cur = conn.cursor()
@@ -24,12 +24,16 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
 
     cur.close()
 
+    conn.commit()
+
+    return {'status': 'success', 'msg': f"email '{email}' is now tracking game with id '{game_id}'"}
+
 
 def remove_email(email: str, conn: connection) -> dict:
     delete_query = """
                     DELETE FROM tracking
                     WHERE email = %s
-                    RETURNING tracking_id
+                    RETURNING tracking_id;
                     """
 
     cur = conn.cursor()
@@ -42,18 +46,18 @@ def remove_email(email: str, conn: connection) -> dict:
 
     cur.close()
 
-    return {'status'}
+    return {'status': 'success', 'msg': f"removed email '{email}' from database"}
 
 
 def lambda_handler(event, context):
     conn = get_connection()
     if event.get('subscribe') is True:
-        subscribe_to_game(event.get('game_id'), event.get('email'), conn)
+        return subscribe_to_game(event.get('game_id'), event.get('email'), conn)
 
     elif event.get('subscribe') is False:
-        remove_email(event.get('email'), conn)
+        return remove_email(event.get('email'), conn)
 
-    return {'event': event, 'context': context}
+    return {'status': 'error', 'msg': ''}
 
 
 if __name__ == "__main__":
