@@ -113,5 +113,6 @@ def main():
     print("Historical pipeline complete")
 
 
-if __name__ == "__main__":
+def lambda_handler(event, context):
     main()
+    return {"status": "Historical pipeline completed"}
