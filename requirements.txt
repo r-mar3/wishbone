@@ -12,4 +12,6 @@ aiohttp
 aiodns
 beautifulsoup4
 forex-python
+pytest-asyncio
+
 
