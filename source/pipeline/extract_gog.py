@@ -12,6 +12,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 OUTPUT_PATH = 'data/gog_products.json'
 CONCURRENCY = 100
 TIMEOUT = 600
+LOAD_LIMIT = 50  # get every nth item from the products
 
 
 async def fetch_json(session: aiohttp.ClientSession, url: str):
@@ -134,6 +135,8 @@ def extract_gog():
     print("Fetching all product IDs...")
     product_ids = get_all_product_ids()
     print(f"Found {len(product_ids)} products")
+    product_ids = product_ids[::LOAD_LIMIT]
+    print(f"Using {len(product_ids)} products")
 
     print("Fetching USD -> GBP conversion rate")
     try:

@@ -13,7 +13,7 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
-DATA_PATH = "data/gog_products.json"
+DATA_PATH = "data/clean_data.json"
 
 
 def get_connection():
@@ -101,7 +101,7 @@ def load_data() -> None:
             platform_name = product["platform_name"]
             listing_date = product["listing_date"]
             discount_percent = product["discount_percent"]
-            price = product["price"]
+            price = product["final_price"]
 
             game_id = get_or_create_game(cur, game_name, retail_price)
             platform_id = get_or_create_platform(cur, platform_name)
