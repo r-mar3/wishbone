@@ -67,7 +67,7 @@ def lambda_handler(event, context):
     if event.get('subscribe') == "True":
         return subscribe_to_game(event.get('game_id'), event.get('email'), conn)
 
-    elif event.get('subscribe') == "False":
+    if event.get('subscribe') == "False":
         return remove_email(event.get('email'), conn)
 
     return {'status': 'error', 'msg': ''}
