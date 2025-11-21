@@ -30,13 +30,13 @@ def get_connection():
 
 
 @st.cache_data()
-def get_data(conn: connection):
+def get_data(_conn: connection):
     "connects to database, connects to wishbone schema and checks data is there"
     data = pd.read_sql("""set search_path to wishbone;
                        select g.game_name, l.price
                                     from listing l
                                     join game g
-                                    on g.game_id=l.game_id;""", con=conn)
+                                    on g.game_id=l.game_id;""", con=_conn)
     return data
 
 
