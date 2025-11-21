@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import altair as alt
 import json
 import asyncio
+import pandas as pd
 
 load_dotenv()
 session = boto3.Session(
@@ -68,25 +69,30 @@ def subscription():
 
 def create_price_vs_time_chart(game_filter):
     data = get_data()
-
+    data['recording_date'] = data['recording_date'].dt.date
+    data['price'] = data['price']/100
     data = data[data['Game'].isin(game_filter)]
+
     chart = alt.Chart(data).mark_line().encode(
-        alt.X("recording_date", title="Date"),
-        alt.Y("price", title="Price"),
+        alt.X("recording_date:T", title="Date",
+              axis=alt.Axis(format=r"%Y-%m-%d")),
+        alt.Y("price", title="Price (£)"),
         alt.Color("Game:N")
 
 
-    )
+    ).properties(title="Game Price over Time")
     return chart
 
 
 def create_game_name_filter():
-    games = get_data()['Game']
+    games = get_data()['Game'].unique()
     games_filter = st.multiselect("Select Game", games, default=None)
     return games_filter
 
 
 def create_dashbaord():
+
+    st.set_page_config(page_title="Gane Tracker", page_icon="👻")
 
     with st.sidebar:
         game_filter = create_game_name_filter()
@@ -96,5 +102,4 @@ def create_dashbaord():
     st.text(response)
 
 
-if __name__ == "__main__":
-    create_dashbaord()
+create_dashbaord()
