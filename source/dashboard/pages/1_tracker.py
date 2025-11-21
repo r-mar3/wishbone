@@ -18,7 +18,6 @@ session = boto3.Session(
 S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 
-@st.cache_data()
 def get_data():
     data = wr.athena.read_sql_query("""
     select g.game_name, l.price, l.recording_date
@@ -86,16 +85,18 @@ def create_price_vs_time_chart(game_filter):
 
 def create_game_name_filter():
     games = get_data()['Game'].unique()
-    games_filter = st.multiselect("Select Game", games, default=None)
+    games_filter = st.multiselect(
+        "Select Game", games, default=None, max_selections=10)
     return games_filter
 
 
 def create_dashbaord():
 
-    st.set_page_config(page_title="Gane Tracker", page_icon="👻")
+    st.set_page_config(page_title="Game Tracker", page_icon="👻")
 
     with st.sidebar:
-        game_filter = create_game_name_filter()
+        with st.expander(label="Choose Games to Track"):
+            game_filter = create_game_name_filter()
     chart = create_price_vs_time_chart(game_filter)
     st.altair_chart(chart)
     response = subscription()
