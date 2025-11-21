@@ -49,6 +49,8 @@ def parse(data: str) -> list[dict]:
     games_list = []
     soup = BeautifulSoup(data, 'html.parser')
     games = soup.find_all('a')
+    if not games:
+        raise ValueError(f'{data} contains no valid items with tag "a"')
 
     for game in games:
         title = game.find('span', {'class': 'title'}).text

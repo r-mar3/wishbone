@@ -29,3 +29,8 @@ def test_total_results_invalid_1():
 def test_get_data_invalid_1():
     with pytest.raises(ValueError):
         get_data('invalid_url')
+
+
+def test_parse_invalid_1():
+    with pytest.raises(ValueError):
+        get_data('invalid_data')
