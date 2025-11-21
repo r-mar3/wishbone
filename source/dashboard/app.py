@@ -29,6 +29,7 @@ def get_connection():
     return conn
 
 
+@st.cache_data()
 def get_data(conn: connection):
     "connects to database, connects to wishbone schema and checks data is there"
     data = pd.read_sql("""set search_path to wishbone;
