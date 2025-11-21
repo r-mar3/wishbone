@@ -60,7 +60,7 @@ def subscription():
         label='Unsubscribe from all',
         help='click to remove your email from our system'
     )
-    response = {'status': 'success', 'msg': 'button not pressed yet'}
+    response = {'status': 'success', 'msg': ''}
     if unsub:
         response = run_unsubscribe(email)
 
