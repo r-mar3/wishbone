@@ -1,7 +1,7 @@
 """Tests for the extract_steam script"""
 
 import pytest
-from extract_steam import total_results, get_data, convert_price, parse
+from extract_steam import get_total_page_count, get_data, convert_price, parse
 
 
 def test_convert_price_valid_1():
@@ -23,7 +23,7 @@ def test_convert_price_invalid_1():
 
 def test_total_results_invalid_1():
     with pytest.raises(ValueError):
-        total_results('invalid_url')
+        get_total_page_count('invalid_url')
 
 
 def test_get_data_invalid_1():
@@ -33,4 +33,4 @@ def test_get_data_invalid_1():
 
 def test_parse_invalid_1():
     with pytest.raises(ValueError):
-        get_data('invalid_data')
+        parse('invalid_data')

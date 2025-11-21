@@ -12,8 +12,8 @@ FILEPATH = f'{FOLDER_PATH}steam_products.json'
 MAX_SEARCH = 500  # use totalresults(INITIAL_URL) when scaling up
 
 
-def total_results(url: str) -> int:
-    """Function to grap the total number of pages for possible data endpoints"""
+def get_total_page_count(url: str) -> int:
+    """Function to grab the total number of pages for possible data endpoints"""
     response = requests.get(url)
     raw_data = dict(response.json())
     results_count = int(raw_data.get('total_count', 0))
