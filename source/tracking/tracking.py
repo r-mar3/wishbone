@@ -32,9 +32,9 @@ def subscribe_to_game(game_id: int, email: str, conn: connection) -> dict:
     except psycopg2.errors.ForeignKeyViolation:
         return {'status': 'error', 'msg': f'game with id {game_id} is not on record'}
 
-    cur.close()
-
     conn.commit()
+
+    cur.close()
 
     return {'status': 'success', 'msg': f"email '{email}' is now tracking game with id '{game_id}'"}
 
