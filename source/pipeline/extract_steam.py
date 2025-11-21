@@ -16,15 +16,22 @@ def total_results(url: str) -> int:
     """Function to grap the total number of pages for possible data endpoints"""
     response = requests.get(url)
     raw_data = dict(response.json())
-    results_count = int(raw_data['total_count'])
-    return results_count
+    results_count = int(raw_data.get('total_count', 0))
+    if results_count:
+        return results_count
+    raise ValueError(
+        f'{url} is invalid, leads to no match for the total_class label in the HTML page')
 
 
 def get_data(url: str) -> dict:
     """Function to obtain raw data from url html"""
     response = requests.get(url)
     raw_data = dict(response.json())
-    return raw_data['results_html']
+    results = raw_data.get('results_html', {})
+    if results:
+        return results
+    raise ValueError(
+        f'{url} is invalid, leads to no match for the results_html label in the HTML page')
 
 
 def convert_price(value: str) -> int:
@@ -32,7 +39,7 @@ def convert_price(value: str) -> int:
     if value.isnumeric():
         return int(value)
     # if not numeric, assume free
-    if value == 'Free':
+    if value.lower() == 'free':
         return 0
     raise ValueError(f'Unexpected input: {value}')
 
