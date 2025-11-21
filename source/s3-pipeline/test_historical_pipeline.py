@@ -8,7 +8,11 @@ from historical_pipeline import extract_table, transform_listing, load_dim_table
 
 
 def test_extract_table_valid():
-    with patch("pandas.read_sql", return_value=pd.DataFrame({"id": [1, 2]})) as mock_read_sql:
+    fake_engine = MagicMock()
+    fake_conn = MagicMock()
+    fake_engine.begin.return_value.__enter__.return_value = fake_conn
+
+    with patch("historical_pipeline.get_engine", return_value=fake_engine), patch("pandas.read_sql", return_value=pd.DataFrame({"id": [1, 2]})) as mock_read_sql:
         df = extract_table("game")
 
         mock_read_sql.assert_called_once()
@@ -64,15 +68,17 @@ def test_load_listing_partitioned():
 
 def test_delete_old_listing_data():
     fake_conn = MagicMock()
-    fake_conn.execute.return_value.row_count = 5
+    fake_result = MagicMock()
+    fake_result.rowcount = 5
+    fake_conn.execute.return_value = fake_result
 
     fake_engine = MagicMock()
     fake_engine.begin.return_value.__enter__.return_value = fake_conn
 
-    with patch("historical_pipeline.engine", fake_engine):
+    with patch("historical_pipeline.get_engine", return_value=fake_engine):
         delete_old_listing_data()
 
-        assert fake_conn.execute.called
+        fake_conn.execute.assert_called_once()
         assert "today" in fake_conn.execute.call_args[0][1]
 
 
