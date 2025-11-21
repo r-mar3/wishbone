@@ -122,4 +122,4 @@ def main():
 
 def lambda_handler(event, context):
     main()
-    return {"status": "Historical pipeline completed"}
+    return {"status": "success", "msg": "Historical pipeline completed"}
