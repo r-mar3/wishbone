@@ -37,7 +37,7 @@ def get_db_connection() -> connection:
     """Returns a live connection from the database."""
     return connect(
         host=environ['RDS_HOST'],
-        port=5432,
+        port=environ['PORT'],
         user=environ['RDS_USERNAME'],
         password=environ['RDS_PASSWORD'],
         dbname=environ['DB_NAME']
