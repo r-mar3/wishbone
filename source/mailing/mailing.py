@@ -16,7 +16,7 @@ def get_games_price_dropped() -> pd.DataFrame:
     athena_query = """WITH price_cte AS (
             SELECT game_id, recording_date, price, 
             LAG(price) OVER (PARTITION BY game_id ORDER BY recording_date) as prev_price
-            FROM listing_parquet
+            FROM listing
             )
             SELECT DISTINCT g.game_id, g.game_name, price_cte.price as new_price, price_cte.prev_price as old_price
                 FROM price_cte 
@@ -117,6 +117,8 @@ def lambda_handler(event, context):
         return {"message": "No games dropped in price"}
 
     price_dropped_emails = get_all_emails_with_game(games_df)
+
+    print(price_dropped_emails)
 
     total_sent = 0
 
