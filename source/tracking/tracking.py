@@ -70,7 +70,12 @@ def lambda_handler(event, context):
     return {'status': 'error', 'msg': ''}
 
 
+def populate_test_emails():
+    for i in range(2, 20):
+        print(lambda_handler(
+            {'subscribe': 'True', 'email': f'test_{i}@testdomain_{i}.com', 'game_id': i}, {}))
+
+
 if __name__ == "__main__":
     load_dotenv()
-    print(lambda_handler(
-        {'subscribe': False, 'email': 'test@test.com', 'game_id': 2}, {}))
+    populate_test_emails()
