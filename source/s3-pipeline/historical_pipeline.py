@@ -26,7 +26,7 @@ CONNECTION_STRING = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{D
 
 def get_engine():
     """Create DB engine"""
-    create_engine(CONNECTION_STRING)
+    return create_engine(CONNECTION_STRING)
 
 
 def extract_table(table: str) -> pd.DataFrame:
