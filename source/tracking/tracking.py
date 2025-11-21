@@ -50,9 +50,7 @@ def remove_email(email: str, conn: connection) -> dict:
 
     cur.execute(delete_query, (email,))
 
-    rows = cur.fetchall()
-
-    if rows == 0:
+    if cur.rowcount == 0:
         return {'status': 'error', 'msg': f"email '{email}' does not exist on the database"}
 
     conn.commit()
