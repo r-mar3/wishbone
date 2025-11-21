@@ -42,7 +42,7 @@ def unsub_button(email):
         label='Unsubscribe from all',
         help='click to remove your email from our system'
     )
-    response = {'status': 'success', 'msg': ''}
+    response = {'status': 'idle', 'msg': 'button not pressed'}
     if unsub:
         response = run_unsubscribe(email)
 
@@ -104,11 +104,14 @@ def create_dashboard():
             game_filter = create_game_name_filter()
     chart = create_price_vs_time_chart(game_filter)
     st.altair_chart(chart)
+
     email = st.text_input('Email', "example@domain.com", )
     games = sub_selects()
     sub_button(email, games)
-    response = unsub_button(email)
-    st.text(response.get('msg'))
+    response = unsub_button()
+    if not response.get('status') == 'idle':
+        st.text(response.get('msg'))
+
     print(response)
 
 
