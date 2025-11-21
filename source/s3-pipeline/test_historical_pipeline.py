@@ -103,4 +103,5 @@ def test_lambda_handler():
         response = lambda_handler({}, {})
 
         mock_main.assert_called_once()
-        assert response == {"status": "Historical pipeline completed"}
+        assert response == {"status": "success",
+                            "msg": "Historical pipeline completed"}
