@@ -21,13 +21,17 @@ def get_connection() -> connection:
     return conn
 
 
-def get_data(conn: connection):
+@st.cache_data()
+def get_data(_conn: connection) -> pd.DataFrame:
     "connects to database, connects to wishbone schema and checks data is there"
     data = pd.read_sql("""set search_path to wishbone;
                        select g.game_name,l.price,p.platform_name
                                     from listing l
                                     join game g
-                                    on g.game_id=l.game_id;""", con=conn)
+                                    on g.game_id=l.game_id
+                                    join platform p
+                                    on p.platform_id=l.platform_id;""", con=_conn)
+    data = data.drop_duplicates()
     return data
 
 
