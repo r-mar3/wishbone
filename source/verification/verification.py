@@ -67,3 +67,5 @@ def lambda_handler(event, context):
     for email in tracking_emails:
         if verify_email(email) is False:
             remove_unverified_email(email)
+
+
