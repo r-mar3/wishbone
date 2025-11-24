@@ -7,6 +7,8 @@ from psycopg2.extensions import connection
 
 load_dotenv()
 
+LOGO_IMG_PATH = "./wishbone_logo.png"
+
 
 def get_connection() -> connection:
     "function to return connection to the RDS database"
@@ -71,7 +73,7 @@ def create_game_name_filter(conn: connection) -> list:
 
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
-    st.image(image="./wishbone logo.png")
+    st.image(image=LOGO_IMG_PATH)
 
     st.title("Welcome to Wishbone!")
 

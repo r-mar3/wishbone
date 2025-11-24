@@ -4,3 +4,4 @@ python-dotenv
 boto3
 aioboto3
 asyncio
+psycopg2-binary
