@@ -1,4 +1,6 @@
 import streamlit as st
+import bcrypt
+import secrets
 from os import environ
 from dotenv import load_dotenv
 import pandas as pd
@@ -8,6 +10,58 @@ from psycopg2.extensions import connection
 load_dotenv()
 
 LOGO_IMG_PATH = "./wishbone_logo.png"
+
+
+def hash_password(password: str) -> bytes:
+    password_bytes = bytes(password, encoding='utf-8')
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt)
+
+
+def new_user(username: str, password: str, conn: connection):
+    hashed_password = hash_password(password)
+
+    insert_query = """
+                    INSERT INTO wishbone."login"
+                    (username, password_hash)
+                    VALUES
+                        (%s, %s)
+                    """
+
+    cur = conn.cursor()
+
+    try:
+        cur.execute(insert_query, (username, hashed_password))
+    except:
+        print("Something went wrong creating new user")
+
+    conn.commit()
+
+    cur.close()
+
+
+def check_login(username: str, password: bytes, conn: connection) -> bool:
+    check_query = f"""
+                SELECT *
+                FROM wishbone."login"
+                WHERE username = '{username}';
+                """
+
+    user_data = pd.read_sql_query(check_query, conn)
+
+    if user_data.empty:
+        return False
+
+    user_dict = user_data.to_dict('series')
+
+    print(f'USER DICT = {user_dict}')
+
+    if len(user_dict.get('login_id')) == 1:
+        stored_hash = bytes(user_dict.get(
+            'password_hash')[0], encoding='utf-8')
+        return bcrypt.checkpw(password, stored_hash)
+
+    raise LookupError('Something dreadful has happened')
 
 
 def get_connection() -> connection:
@@ -83,9 +137,30 @@ def create_current_price_metrics() -> None:
         with st.expander(label="Select Games"):
             game_filter = create_game_name_filter(db_conn)
 
+        with st.expander(label='Login'):
+            username = st.text_input('Username')
+            password = bytes(st.text_input('Password'), encoding='utf-8')
+            pressed_login = st.button(label='Login')
+            if (pressed_login) and (username) and (password):
+                login = check_login(username, password, db_conn)
+                if login:
+                    st.text('yes')  # USER IS LOGGED IN, DO LOGGED IN THINGS
+
+                else:
+                    st.text('Username or password is incorrect')
+
+        with st.expander(label='Create Account'):
+            username = st.text_input('Choose a username')
+            password_1 = st.text_input('New Password')
+            password_2 = st.text_input('Confirm Password')
+
+            match = (password_1 == password_2)
+            if match and username and password_1 and password_2:
+                st.text('Passwords match')
+                new_user(username, password_1, db_conn)
+
     data = format_data(game_filter, db_conn)
     st.dataframe(data, hide_index=True)
 
 
-# something
 create_current_price_metrics()
