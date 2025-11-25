@@ -47,6 +47,14 @@ def run_create_account(conn):
                 st.text(response.get('msg'))
 
 
+tracker, _, home = st.columns([3, 10, 3])
+
+if tracker.button("Game Tracker"):
+    st.switch_page("pages/1_tracker.py")
+
+if home.button("Home"):
+    st.switch_page("./app.py")
+
 db_conn = get_connection()
 
 # Initialize session state variable

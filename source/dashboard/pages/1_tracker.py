@@ -103,6 +103,14 @@ def create_dashboard() -> None:
     "calls all of the above functions to create the tracking page of the dashboard"
     st.set_page_config(page_title="Game Tracker", page_icon="🎮")
 
+    home, _, login = st.columns([3, 10, 3])
+
+    if home.button("Home"):
+        st.switch_page("./app.py")
+
+    if login.button("Login"):
+        st.switch_page("pages/2_login.py")
+
     with st.sidebar:
         with st.expander(label="Choose Games to Track"):
             game_filter = create_game_name_filter()

@@ -218,6 +218,15 @@ def decrement_page() -> None:
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
 
+    tracker, _, login = st.columns([3, 10, 3])
+
+    if login.button("Login"):
+        st.switch_page("./pages/2_login.py")
+
+    if tracker.button("Game Tracker"):
+
+        st.switch_page("./pages/1_tracker.py")
+
     st.image(image=LOGO_IMG_PATH)
 
     st.title("Welcome to Wishbone!")
