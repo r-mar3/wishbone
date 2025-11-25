@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 import pandas as pd
 from psycopg2 import connect
 from psycopg2.extensions import connection
-from backend import check_login, hash_password, delete_user, new_user
+from backend import check_login, hash_password, delete_user, create_user, validate_new_username, validate_new_password, validate_login
+
 
 load_dotenv()
 
@@ -74,6 +75,45 @@ def create_game_name_filter(conn: connection) -> list:
     return games_filter
 
 
+def run_login(conn):
+    username = st.text_input('Username')
+    password = bytes(st.text_input('Password'), encoding='utf-8')
+
+    if st.button(label='Login'):
+        validation = validate_login(username, password)
+
+        if not validation.get('success'):
+            st.text(validation.get('msg'))
+
+        else:
+            response = check_login(username, password, conn)
+            st.text(response.get('msg'))
+
+            if response.get('success'):
+                print('logged in')
+                # TODO USER IS LOGGED IN, DO LOGGED IN THINGS (Session state)
+
+
+def run_create_account(conn):
+    username = st.text_input('Choose a username')
+    u_validation = validate_new_username(username, conn)
+    st.text(u_validation.get('msg'))
+
+    if u_validation.get('success'):
+        password_1 = st.text_input('New Password')
+        password_2 = st.text_input('Confirm Password')
+
+        if st.button('Create account'):
+            p_validation = validate_new_password(
+                password_1, password_2)
+
+            st.text(p_validation.get('msg'))
+
+            if p_validation.get('success'):
+                response = create_user(username, password_1, conn)
+                st.text(response.get('msg'))
+
+
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
     st.image(image=LOGO_IMG_PATH)
@@ -87,28 +127,10 @@ def create_current_price_metrics() -> None:
             game_filter = create_game_name_filter(db_conn)
 
         with st.expander(label='Login'):
-            username = st.text_input('Username')
-            password = bytes(st.text_input('Password'), encoding='utf-8')
-            pressed_login = st.button(label='Login')
-            if (pressed_login) and (username) and (password):
-                login = check_login(username, password, db_conn)
-
-                if login:
-                    # TODO USER IS LOGGED IN, DO LOGGED IN THINGS
-                    st.text('yes')
-
-                else:
-                    st.text('Username or password is incorrect')
+            run_login(db_conn)
 
         with st.expander(label='Create Account'):
-            username = st.text_input('Choose a username')
-            password_1 = st.text_input('New Password')
-            password_2 = st.text_input('Confirm Password')
-
-            match = (password_1 == password_2)
-            if match and username and password_1 and password_2:
-                st.text('Passwords match')
-                new_user(username, password_1, db_conn)
+            run_create_account(db_conn)
 
     data = format_data(game_filter, db_conn)
     st.dataframe(data, hide_index=True)
