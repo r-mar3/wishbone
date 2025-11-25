@@ -22,6 +22,8 @@ S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
 LOGO_IMG_PATH = "./wishbone_logo.png"
 
+pd.set_option("display.precision", 2)
+
 
 def get_connection() -> connection:
     "function to return connection to the RDS database"
@@ -96,45 +98,79 @@ def check_if_game_dropped_price(_conn: connection) -> pd.DataFrame:
     return game_id_df
 
 
-def create_price_drop_old_data(data: pd.DataFrame):
-
+def create_price_drop_old_data(data: pd.DataFrame) -> pd.DataFrame:
+    "function to create a dataframe with the column 'price' set as the old data"
     format_data_old = data.copy()
-    format_data_old['price'] = format_data_old['old_price'].astype(float)/100
+    format_data_old['old_price'] = format_data_old['old_price'].astype(
+        float)/100
+    format_data_old['price'] = format_data_old['old_price']
     format_data_old["dataset"] = "Old Price"
 
     return format_data_old
 
 
-def create_price_drop_new_data(data: pd.DataFrame):
-
+def create_price_drop_new_data(data: pd.DataFrame) -> pd.DataFrame:
+    "function to create a dataframe with the column 'price' set as the new price"
     format_data_new = data.copy()
-    format_data_new['price'] = format_data_new["new_price"].astype(float)/100
+    format_data_new['new_price'] = format_data_new["new_price"].astype(
+        float)/100
+    format_data_new['price'] = format_data_new['new_price']
     format_data_new["dataset"] = "New Price"
 
     return format_data_new
 
 
+def create_discount_column(data: pd.DataFrame) -> pd.DataFrame:
+    "function to create a column for discount percentage"
+    data = data.copy()
+    data['discount'] = (1 - data['new_price']/data['old_price'])*100
+
+    return data
+
+
 def filter_data(game_filter: list, conn: connection) -> pd.DataFrame:
     "filters the dataframe dependent on game selected"
-    data = get_rds_data(conn)
+    data = check_if_game_dropped_price(conn).copy()
 
     data = data[data['game_name'].isin(game_filter)]
     return data
 
 
-def format_data(game_filter: list, conn: connection) -> pd.DataFrame:
+def format_data(game_filter: list, conn: connection, sort_by, sort_dir) -> pd.DataFrame:
+    "Formats the dataframe for display"
 
-    data = filter_data(game_filter, conn)
+    data = filter_data(game_filter, conn).copy()
+
+    data = create_discount_column(data)
+
+    data['old_price'] = data['old_price'].astype(float)/100
+
+    data['new_price'] = data['new_price'].astype(float)/100
 
     data["platform_name"] = data["platform_name"].map(
         {"gog": "GoG", "steam": "Steam"})
 
-    data['price'] = data['price'].astype(float)/100
+    data = data[["game_name", "old_price",
+                 "new_price", "discount", "platform_name"]]
 
     data = data.rename(columns={
         "game_name": "Game",
-        "price": "Price (£)",
-        "platform_name": "Platform"
+        "platform_name": "Platform",
+        "discount": "Discount",
+        "old_price": "Old Price (£)",
+        "new_price": "Price"
+    })
+
+    if sort_dir == "Ascending":
+        sort_dir = True
+    else:
+        sort_dir = False
+
+    data = data.sort_values(by=sort_by, ascending=sort_dir)
+
+    data = data.rename(columns={
+        "Price": "Price (£)",
+        "Discount": "Discount (%)"
     })
 
     return data
@@ -142,23 +178,23 @@ def format_data(game_filter: list, conn: connection) -> pd.DataFrame:
 
 def create_game_name_filter(conn: connection) -> list:
     "Creates a multiselect filter to filter by game name"
-    games = get_rds_data(conn)['game_name']
+    games = check_if_game_dropped_price(conn)['game_name']
     games_filter = st.multiselect(
         "Select Game", games, default=games)
     return games_filter
 
 
 def create_discount_filter() -> list:
-
+    "creates a filter that allows number input to filter by minimum discount"
     discount_filter = st.number_input(
         label="Enter minimum discount percentage", max_value=100.0)
     return discount_filter
 
 
-def create_paginated_df(conn: connection, game_filter, page_num):
-
-    num_per_page = 15
-    unpaged_df = format_data(game_filter, conn)
+def create_paginated_df(conn: connection, game_filter, page_num, sort_by, sort_dir):
+    "uses session state to create a dataframe with pages"
+    num_per_page = 10
+    unpaged_df = format_data(game_filter, conn, sort_by, sort_dir)
 
     start = page_num * num_per_page
     end = (1+page_num) * num_per_page
@@ -168,12 +204,27 @@ def create_paginated_df(conn: connection, game_filter, page_num):
     return paged_df
 
 
-def increment_page():
+def create_sorting_choice_filter() -> str:
+    "function to allow user to choose a parameter to sort the dataframe by"
 
+    option = st.selectbox(label="Sort By", options=["Discount", "Price"])
+    return option
+
+
+def create_direction_sorting_filter() -> str:
+    "function to create an option to sort by price ascending or descending"
+    option = st.radio(label='', options=[
+                      'Descending', 'Ascending'])
+    return option
+
+
+def increment_page() -> None:
+    "function to increment the session state by 1"
     st.session_state.page += 1
 
 
-def decrement_page():
+def decrement_page() -> None:
+    "function to decrement the session state by 1"
     st.session_state.page -= 1
 
 
@@ -218,6 +269,7 @@ def run_create_account(conn):
 
 def create_current_price_metrics() -> None:
     "Creates the dashboard page to display price metrics"
+
     st.image(image=LOGO_IMG_PATH)
 
     st.title("Welcome to Wishbone!")
@@ -228,21 +280,8 @@ def create_current_price_metrics() -> None:
         with st.expander(label="Select Games"):
             game_filter = create_game_name_filter(db_conn)
 
-        discount = create_discount_filter()
-
-    price_drop_data = check_if_game_dropped_price(db_conn)
-    price_drop_data = price_drop_data[price_drop_data['new_price'] <= (
-        1-discount/100)*price_drop_data['old_price']]
-    old_data = create_price_drop_old_data(price_drop_data)
-    new_data = create_price_drop_new_data(price_drop_data)
-    combined = pd.concat([old_data, new_data])
-    price_drop_chart = alt.Chart(combined).mark_bar().encode(
-        alt.X("price", axis=alt.Axis(orient='top'), title='Price'),
-        alt.Y("game_name", title='Game'),
-        alt.Color("dataset:N"),
-
-        yOffset="dataset:N"
-    )
+            sort_by = create_sorting_choice_filter()
+            sort_dir = create_direction_sorting_filter()
 
     with st.expander(label='Login'):
         run_login(db_conn)
@@ -250,8 +289,8 @@ def create_current_price_metrics() -> None:
     with st.expander(label='Create Account'):
         run_create_account(db_conn)
 
-    data = format_data(game_filter, db_conn)
-    last_page = len(data)//15
+    data = format_data(game_filter, db_conn, sort_by, sort_dir)
+    last_page = len(data)//10
 
     prev, _, next = st.columns([3, 10, 3])
 
@@ -274,9 +313,13 @@ def create_current_price_metrics() -> None:
 
         page_num = st.session_state.page
 
-    df = create_paginated_df(db_conn, game_filter, page_num)
+    df = create_paginated_df(db_conn, game_filter, page_num, sort_by, sort_dir)
 
-    st.dataframe(df)
+    st.dataframe(df, hide_index=True, column_config={
+        "Price (£)": st.column_config.NumberColumn(format="%.2f"),
+        "Old Price (£)": st.column_config.NumberColumn(format="%.2f"),
+        "Discount (%)": st.column_config.NumberColumn(format="%.0f")
+    })
 
 
 create_current_price_metrics()
