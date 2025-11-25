@@ -5,16 +5,20 @@ import re
 import json
 import os
 from bs4 import BeautifulSoup
+from forex_python.converter import CurrencyRates
 import requests
 
 
 FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
-FILEPATH = f'{FOLDER_PATH}products.json'
+
+STEAM_PATH = f'{FOLDER_PATH}steam_products.json'
 STEAM_SEARCH = 'https://store.steampowered.com/search?term={search_term}'
 STEAM_SPLIT = '<div class="search_name ellipsis">'
-GOG_SEARCH = 'https://www.gog.com/en/games?query={search_term}&order=desc:score'
+
+GOG_PATH = f'{FOLDER_PATH}gog_products.json'
+GOG_SEARCH = 'https://catalog.gog.com/v1/catalog?limit=48&query=like%3A{search_term}'
 GOG_SPLIT = '<-product-tile _ngcontent-gogcom-store-c715558788"'
-GOG_KEYWORDS = ["finalAmount", "baseAmount"]
+DEFAULT_RATE = 0.77
 
 # <--- Steam functions --->
 
@@ -74,8 +78,7 @@ def parse_steam(data: str, search_input: str) -> dict:
     listing = {
         'name': title,
         'base_price_gbp_pence': convert_price(str(original_price)),
-        'final_price_gbp_pence': convert_price(str(discount_price)),
-        'platform': 'steam'
+        'final_price_gbp_pence': convert_price(str(discount_price))
     }
 
     return listing
@@ -98,9 +101,6 @@ def get_gog_html(search_input: str) -> str:
         f'{search_input} is invalid and leads to no match')
 
 
-# https://catalog.gog.com/v1/catalog?limit=48&query=like%3Astardew+valley
-
-
 def get_gog_prices(search_input: str) -> dict:
     html = get_gog_html(search_input)
     soup = BeautifulSoup(html, "html.parser")
@@ -114,8 +114,7 @@ def get_gog_prices(search_input: str) -> dict:
     listing = {
         'name': title,
         'base_price_gbp_pence': base_amount,
-        'final_price_gbp_pence': final_amount,
-        'platform': 'gog'
+        'final_price_gbp_pence': final_amount
     }
     return listing
 
@@ -127,7 +126,7 @@ def output(results: list[dict]) -> None:
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
 
-    with open(FILEPATH, 'w+', encoding='utf-8') as f:
+    with open(STEAM_PATH, 'w+', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
 
 
@@ -147,6 +146,12 @@ def export_games() -> None:
     games_list.append(parse_steam(game, user_input))
 
     # gog search
+    try:
+        c = CurrencyRates()
+        usd_to_gbp_rate = c.get_rate("USD", "GBP")
+    except:
+        print("RatesNotAvailableError - Forex API is currently unavailable")
+        usd_to_gbp_rate = DEFAULT_RATE
     games_list.append(get_gog_prices(user_input))
 
     output(games_list)
