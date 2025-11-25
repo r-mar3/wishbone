@@ -110,7 +110,10 @@ def create_dashboard() -> None:
             if game_filter is not None and game_filter != []:
                 st.session_state['game_filter'] = game_filter
 
-    game_filter = st.session_state["game_filter"]
+    if 'game_filter' not in st.session_state:
+        st.session_state['game_filter'] = []
+
+    game_filter = st.session_state.get("game_filter", [])
     chart = create_price_vs_time_chart(st.session_state.game_filter)
     st.altair_chart(chart)
 
