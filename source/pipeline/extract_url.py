@@ -105,8 +105,8 @@ def get_gog_prices(search_input: str) -> dict:
         'div', {"class": "product-tile__title ng-star-inserted"})
     input(title)
 
-    final_amount = extract_amount(script_text, "finalAmount")
-    base_amount = extract_amount(script_text, "baseAmount")
+    final_amount = 'extract_amount(script_text, "finalAmount")'
+    base_amount = 'extract_amount(script_text, "baseAmount")'
 
     listing = {
         'name': title,
