@@ -54,8 +54,14 @@ if "create_account" not in st.session_state:
     st.session_state.create_account = False
 
 # Button to switch modes
-if st.button("Don't have an account? Click here!"):
-    st.session_state.create_account = True
+if st.session_state.create_account:
+    if st.button("Back to login"):
+        st.session_state.creatE_account = False
+
+if not st.session_state.create_account:
+    if st.button("Don't have an account? Click here!"):
+        st.session_state.create_account = True
+
 
 # Show appropriate form
 if st.session_state.create_account:
