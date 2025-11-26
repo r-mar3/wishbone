@@ -8,7 +8,8 @@ from backend import (validate_login, validate_new_email,
 def run_login(conn):
     """Displays the login prompt and logs a user in"""
     identity = st.text_input('Username or email')
-    password = bytes(st.text_input('Password'), encoding='utf-8')
+    password = bytes(st.text_input(
+        'Password', type='password'), encoding='utf-8')
 
     if st.button(label='Login'):
         validation = validate_login(identity, password)
@@ -35,8 +36,8 @@ def run_create_account(conn):
     st.text(u_validation.get('msg'))
 
     if u_validation.get('success') and e_validation.get('success'):
-        password_1 = st.text_input('New Password')
-        password_2 = st.text_input('Confirm Password')
+        password_1 = st.text_input('New Password', type='password')
+        password_2 = st.text_input('Confirm Password', type='password')
 
         if st.button('Create account'):
             p_validation = validate_new_password(
