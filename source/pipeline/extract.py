@@ -22,13 +22,13 @@ DEFAULT_RATE = 0.77
 
 def get_steam_html(search_input: str) -> str:
     """Get first result data from steam search term"""
-    # build url
     response = requests.get(STEAM_SEARCH.format(search_term=search_input))
     raw_data = response.text
     raw_data = raw_data.split(STEAM_SPLIT)
+    # len = 1 means no search results found, return falsey value
     if len(raw_data) <= 1:
         print(f'{search_input} leads to no match for Steam')
-        return ''  # len = 1 means no search results found, return falsey value
+        return ''
     # else get the first result ignoring the headers
     return raw_data[1]
 
@@ -36,9 +36,6 @@ def get_steam_html(search_input: str) -> str:
 def parse_steam(data: str) -> dict:
     """Function to scrape top selling games and output list of dicts with prices and titles"""
     soup = BeautifulSoup(data, 'html.parser')
-
-    # class = "discount_original_price" >£10.99 # if none, then no discount
-    # class = "discount_final_price" >£10.99
 
     title = soup.find("span", {"class": "title"})
     if not title:
