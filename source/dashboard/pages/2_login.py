@@ -29,9 +29,12 @@ def run_login(conn):
 def run_create_account(conn):
     """Displays the create account prompt and creates a user with provided info"""
     email = st.text_input('Enter your email')
+
     e_validation = validate_new_email(email, conn)
     st.text(e_validation.get('msg'))
+
     username = st.text_input('Choose a username')
+
     u_validation = validate_new_username(username, conn)
     st.text(u_validation.get('msg'))
 
@@ -42,7 +45,6 @@ def run_create_account(conn):
         if st.button('Create account'):
             p_validation = validate_new_password(
                 password_1, password_2)
-
             st.text(p_validation.get('msg'))
 
             if p_validation.get('success'):
@@ -66,17 +68,14 @@ def login():
         st.session_state.create_account = False
 
     if st.session_state.create_account:
-        if st.button("Back to login"):
-            st.session_state.creatE_account = False
-
-    if not st.session_state.create_account:
-        if st.button("Don't have an account? Click here!"):
-            st.session_state.create_account = True
-
-    if st.session_state.create_account:
         run_create_account(db_conn)
+        if st.button("Back to login"):
+            st.session_state.create_account = False
+
     else:
         run_login(db_conn)
+        if st.button("Don't have an account? Click here!"):
+            st.session_state.create_account = True
 
 
 login()
