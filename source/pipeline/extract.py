@@ -1,7 +1,6 @@
 """Script which gets data from web api search console, one game at a time"""
 
 import argparse
-import re
 import json
 import os
 from bs4 import BeautifulSoup
