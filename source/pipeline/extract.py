@@ -94,7 +94,8 @@ def get_gog_prices(search_input: str, convert_rate: float = DEFAULT_RATE) -> dic
 
     prices = data.get('price')
     if not prices:
-        raise ValueError('There are no prices here, oops')
+        print('There are no prices here, oops')
+        return {}
 
     final_amount = prices.get('final')
     base_amount = prices.get('base')
