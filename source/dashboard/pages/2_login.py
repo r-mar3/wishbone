@@ -71,11 +71,13 @@ def login():
         run_create_account(db_conn)
         if st.button("Back to login"):
             st.session_state.create_account = False
+            st.rerun()
 
     else:
         run_login(db_conn)
         if st.button("Don't have an account? Click here!"):
             st.session_state.create_account = True
+            st.rerun()
 
 
 login()
