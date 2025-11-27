@@ -7,6 +7,9 @@ from bs4 import BeautifulSoup
 from forex_python.converter import CurrencyRates
 import requests
 
+from transform import transform_all
+from load import load_data
+
 
 FOLDER_PATH = 'data/'  # needs to be /tmp/data for lambda
 
@@ -139,15 +142,15 @@ def output(results: list[dict], destination: str) -> None:
         json.dump(results, f, indent=4)
 
 
-def extract_games(user_inputs: list[str] = ['stardew valley']) -> None:
+def extract_games(game_inputs: list[str] = ['stardew valley']) -> None:
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
     steam_games = []
     gog_games = []
 
     # steam search
-    for user_input in user_inputs:
-        game = get_steam_html(user_input)
+    for game_name in game_inputs:
+        game = get_steam_html(game_name)
         steam_games.append(parse_steam(game))
 
         # gog search
@@ -158,11 +161,17 @@ def extract_games(user_inputs: list[str] = ['stardew valley']) -> None:
             print("RatesNotAvailableError - Forex API is currently unavailable")
             usd_to_gbp_rate = DEFAULT_RATE
 
-        steam_games.append(parse_steam(game))
-        gog_games.append(get_gog_prices(user_input, usd_to_gbp_rate))
+        gog_games.append(get_gog_prices(game_name, usd_to_gbp_rate))
 
     output(steam_games, STEAM_PATH)
     output(gog_games, GOG_PATH)
+
+
+def pipeline(game_inputs: list[str]) -> None:
+    """pipeline for multiprocessing"""
+    extract_games(game_inputs)
+    transform_all()
+    load_data()
 
 
 if __name__ == '__main__':

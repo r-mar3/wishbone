@@ -1,12 +1,11 @@
 """Script for transforming data for storage in RDS"""
 
 import json
-import os
 from datetime import date, timedelta
 import pandas as pd
 
 
-DIRECTORY = '/tmp/data/'
+DIRECTORY = 'data/'
 SOURCE_FILES = ['gog_products.json', 'steam_products.json']
 OUTPUT_PATH = f'{DIRECTORY}clean_data.json'
 TEST_DATA = 'test_products.json'
