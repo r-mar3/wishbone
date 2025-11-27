@@ -140,6 +140,7 @@ def create_dashboard() -> None:
 
     else:
         email = st.text_input('Email')
+
     games = sub_selects()
     sub_button(email, games)
     response = unsub_button(email)
