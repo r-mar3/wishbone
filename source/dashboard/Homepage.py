@@ -61,7 +61,7 @@ def get_glue_db_data() -> pd.DataFrame:
 
 
 @st.cache_data()
-def create_max_price_column():
+def create_max_price_column() -> pd.DataFrame:
     query = """
         with price_cte as (select game_id, price, recording_date, platform_id, max(price) over (partition by game_id) as max_price
         from listing)
@@ -92,14 +92,14 @@ def create_discount_column(data: pd.DataFrame) -> pd.DataFrame:
     return data
 
 
-def filter_data(game_filter: list, data) -> pd.DataFrame:
+def filter_data(game_filter: list, data: pd.DataFrame) -> pd.DataFrame:
     "filters the dataframe dependent on game selected"
 
     data = data[data['game_name'].isin(game_filter)]
     return data
 
 
-def format_data(game_filter: list, sort_by, sort_dir, data) -> pd.DataFrame:
+def format_data(game_filter: list, sort_by: str, sort_dir: str, data: pd.DataFrame) -> pd.DataFrame:
     "Formats the dataframe for display"
 
     filtered_data = filter_data(game_filter, data).copy()
@@ -136,7 +136,7 @@ def format_data(game_filter: list, sort_by, sort_dir, data) -> pd.DataFrame:
     return filtered_data
 
 
-def create_game_name_filter(data) -> list:
+def create_game_name_filter(data: pd.DataFrame) -> list:
     "Creates a multiselect filter to filter by game name"
     games = data['game_name'].copy()
     games = games.drop_duplicates()
@@ -145,16 +145,8 @@ def create_game_name_filter(data) -> list:
     return games_filter
 
 
-def create_discount_filter() -> list:
-    "creates a filter that allows number input to filter by minimum discount"
-    discount_filter = st.number_input(
-        label="Enter minimum discount percentage", max_value=100.0)
-    return discount_filter
-
-
-def create_paginated_df(game_filter, page_num, sort_by, sort_dir, data):
+def create_paginated_df(page_num: int, data: pd.DataFrame) -> pd.DataFrame:
     "uses session state to create a dataframe with pages"
-    # unpaged_df = format_data(game_filter, sort_by, sort_dir,data)
 
     start = page_num * NUM_PER_PAGE
     end = (1+page_num) * NUM_PER_PAGE
@@ -217,7 +209,7 @@ def create_current_price_metrics() -> None:
             sort_dir = create_direction_sorting_filter()
 
     data = format_data(game_filter, sort_by, sort_dir, glue_data)
-    last_page = len(data)//15
+    last_page = len(data)//NUM_PER_PAGE
 
     # using columns to format the positioning of buttons on the dashboard
     prev_button, _, next_button = st.columns([3, 10, 3])
@@ -241,7 +233,7 @@ def create_current_price_metrics() -> None:
 
         page_num = st.session_state.page
 
-    df = create_paginated_df(game_filter, page_num, sort_by, sort_dir, data)
+    df = create_paginated_df(page_num, data)
 
     st.dataframe(df, hide_index=True, column_config={
         "Price (£)": st.column_config.NumberColumn(format="%.2f"),
