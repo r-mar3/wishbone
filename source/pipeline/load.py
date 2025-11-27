@@ -1,6 +1,5 @@
 """Script for loading data to RDS"""
 import json
-import os
 import psycopg2
 from dotenv import load_dotenv
 from datetime import date
@@ -9,7 +8,7 @@ from os import environ
 load_dotenv()
 
 
-DATA_PATH = "/tmp/data/clean_data.json"
+DATA_PATH = "data/clean_data.json"
 
 
 def get_connection():

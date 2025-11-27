@@ -7,7 +7,7 @@ import pandas as pd
 import multiprocessing
 import time
 
-from extract import extract_games
+from extract import pipeline
 
 NUM_PROCESSES = 64
 # Most recent duration test
@@ -63,7 +63,7 @@ def run_extract():
     game_chunks = [games[i::size] for i in range(size)]
 
     with multiprocessing.Pool(NUM_PROCESSES) as pool:
-        pool.map(extract_games, game_chunks)
+        pool.map(pipeline, game_chunks)
 
 
 if __name__ == "__main__":
