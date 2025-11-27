@@ -18,7 +18,7 @@ session = boto3.Session(
     region_name="eu-west-2")
 S3_BUCKET_NAME = environ["BUCKET_NAME"]
 
-LOGO_IMG_PATH = "./wishbone_logo.png"
+LOGO_IMG_PATH = "https://raw.githubusercontent.com/DevMjee/wishbone/refs/heads/main/assets/logo.png"
 NUM_PER_PAGE = 10
 
 
