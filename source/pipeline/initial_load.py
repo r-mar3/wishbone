@@ -4,8 +4,6 @@ import awswrangler
 import boto3
 from dotenv import load_dotenv
 import pandas as pd
-from psycopg2.extensions import connection
-from psycopg2 import connect
 import multiprocessing
 import time
 
@@ -24,7 +22,24 @@ load_dotenv()
 
 def get_game_names() -> list[str]:
     """get all names of games we're tracking"""
-    athena_query = """SELECT game_name FROM game"""
+    athena_query = """
+    SELECT
+        DISTINCT g.game_name,
+        l.recording_date
+    FROM 
+        game g
+    JOIN
+        listing l
+    ON
+        g.game_id = l.game_id
+    ORDER BY
+        l.recording_date
+    DESC
+    LIMIT
+        100
+    ;
+    """
+    # query above loads latest hundred unique game names
 
     session = boto3.Session(aws_access_key_id=environ["ACCESS_KEY_ID"],
                             aws_secret_access_key=environ["AWS_SECRET_ACCESS_KEY_ID"], region_name='eu-west-2')
@@ -32,7 +47,13 @@ def get_game_names() -> list[str]:
     game_names = pd.DataFrame(awswrangler.athena.read_sql_query(
         athena_query, database="wishbone-glue-db", boto3_session=session))
 
-    return game_names['game_name'].to_list()
+    results = game_names['game_name'].to_list()
+
+    if len(results) == len(set(results)):
+        return results
+
+    raise ValueError(
+        'Not unique names! How could this happen? The SQL Query was magnificent!')
 
 
 def run_extract():
@@ -42,7 +63,7 @@ def run_extract():
     game_chunks = [games[i::size] for i in range(size)]
 
     with multiprocessing.Pool(NUM_PROCESSES) as pool:
-        pool.map(extract_games, games)
+        pool.map(extract_games, game_chunks)
 
 
 if __name__ == "__main__":
