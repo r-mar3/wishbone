@@ -3,12 +3,8 @@ from os import environ
 import streamlit as st
 from dotenv import load_dotenv
 import pandas as pd
-from psycopg2 import connect
-from psycopg2.extensions import connection
 import boto3
 import awswrangler as wr
-
-from backend import get_connection
 
 
 load_dotenv()
