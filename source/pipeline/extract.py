@@ -1,7 +1,8 @@
-"""Script which gets data from web api search console, one game at a time"""
+"""Script which gets data from web api search console, one game at a time or a list of daily games"""
 
 import json
 import os
+
 from bs4 import BeautifulSoup
 from forex_python.converter import CurrencyRates
 import requests
@@ -125,7 +126,7 @@ def convert_price(value: str, convert_rate: float = DEFAULT_RATE) -> int:
     raise ValueError(f'Unexpected input: {value}')
 
 
-def output(results: dict, destination: str) -> None:
+def output(results: list[dict], destination: str) -> None:
     """Function to create output json file"""
     if not results:
         print(f'no matches for {destination}')
@@ -134,18 +135,20 @@ def output(results: dict, destination: str) -> None:
     if not os.path.isdir(FOLDER_PATH):
         os.mkdir(FOLDER_PATH)
 
-    with open(destination, 'a+', encoding='utf-8') as f:
+    with open(destination, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
 
 
 def extract_games(user_inputs: list[str] = ['stardew valley']) -> None:
 
     os.makedirs(FOLDER_PATH, exist_ok=True)
+    steam_games = []
+    gog_games = []
 
     # steam search
     for user_input in user_inputs:
         game = get_steam_html(user_input)
-        output(parse_steam(game), STEAM_PATH)
+        steam_games.append(parse_steam(game))
 
         # gog search
         try:
@@ -155,7 +158,11 @@ def extract_games(user_inputs: list[str] = ['stardew valley']) -> None:
             print("RatesNotAvailableError - Forex API is currently unavailable")
             usd_to_gbp_rate = DEFAULT_RATE
 
-        output(get_gog_prices(user_input, usd_to_gbp_rate), GOG_PATH)
+        steam_games.append(parse_steam(game))
+        gog_games.append(get_gog_prices(user_input, usd_to_gbp_rate))
+
+    output(steam_games, STEAM_PATH)
+    output(gog_games, GOG_PATH)
 
 
 if __name__ == '__main__':
