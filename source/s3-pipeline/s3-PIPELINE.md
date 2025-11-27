@@ -41,7 +41,7 @@ Repeat this for as many .py scripts listed up above
 
 ### Configuration
 
-The script requires the following environment variables, loaded locally via a `.env` file:  
+The script requires the following environment variables, either loaded locally via a `.env` file, or through AWS secrets manager:  
 
 | Variable | Description |
 |----------|-------------|
