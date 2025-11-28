@@ -13,6 +13,5 @@ EXPOSE 8501
 
 COPY pages ./pages
 COPY .streamlit .streamlit/
-COPY Homepage.py backend.py wishbone_logo.png ./
 
 CMD ["streamlit", "run", "Homepage.py", "--server.port=8501", "--server.address=0.0.0.0"]
