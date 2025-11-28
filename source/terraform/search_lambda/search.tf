@@ -28,6 +28,7 @@ resource "aws_iam_role_policy_attachment" "search-lambda-execution-role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+
 resource "aws_lambda_function" "wishbone-search-lambda" {
   function_name = "wishbone-search-lambda"
   role = aws_iam_role.wishbone-search-role.arn
@@ -41,6 +42,8 @@ resource "aws_lambda_function" "wishbone-search-lambda" {
       RDS_HOST = var.RDS_HOST
       RDS_PASSWORD = var.RDS_PASSWORD
       RDS_USERNAME = var.RDS_USERNAME
+      ACCESS_KEY_ID = var.ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY_ID = var.AWS_SECRET_ACCESS_KEY_ID 
       
     }
   }

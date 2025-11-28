@@ -15,6 +15,8 @@ NUM_PER_PAGE = 10
 
 @st.cache_data()
 def create_max_price_column() -> pd.DataFrame:
+    """queries the Glue DB via Athena to return the games where the current price is less than
+    the normal price, by creating a column for max price for each game"""
     query = """
         WITH 
             price_cte AS 

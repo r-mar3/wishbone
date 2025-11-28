@@ -41,6 +41,8 @@ resource "aws_lambda_function" "wishbone-etl-lambda" {
       RDS_HOST = var.RDS_HOST
       RDS_PASSWORD = var.RDS_PASSWORD
       RDS_USERNAME = var.RDS_USERNAME
+      ACCESS_KEY_ID = var.ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY_ID = var.AWS_SECRET_ACCESS_KEY_ID
       
     }
   }
