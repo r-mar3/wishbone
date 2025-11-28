@@ -12,30 +12,19 @@
 ## `historical_pipeline.py` — Historical Pipeline
 
 ### What It Does
-The `historical_pipeline.py` script removes old data from the RDS and transfers any to the S3 bucket
+The `historical_pipeline.py` script removes old data from the RDS and transfers any to the S3 bucket. Data is converted to time partitioned parquet files
 
 Features of the script
-- List script features/functionality for script
-- 
-- 
+- Connects to the RDS and S3 bucket
+- Creates parquet files
+- Clears old data from the RDS
 
 
-Repeat this for as many .py scripts listed up above
 
 ## `test_historical_pipeline.py` — Historical Pipeline
 
 ### What It Does
-The `test_historical_pipeline.py` script removes old data from the RDS and transfers any to the S3 bucket
-
-Features of the script
-- List script features/functionality for script
-- 
-- 
-
-
-Repeat this for as many .py scripts listed up above
-
-
+The `test_historical_pipeline.py` script tests the functionality of the historical pipeline script
 
 ---
 
