@@ -37,7 +37,7 @@ def get_data() -> pd.DataFrame:
     return data
 
 
-def sub_selects() -> list:
+def sub_selection() -> list:
     """multiselect option to select games to subscribe to"""
     games = get_data()['Game']
     sub = st.multiselect(
@@ -94,7 +94,7 @@ def account_button():
 
 
 async def trigger_search_lambda(payload: dict) -> dict:
-    """Triggers the lambda for mailing list subscription"""
+    """triggers the lambda for mailing list subscription"""
     async with aioboto3.client('lambda') as client:
         response = await client.invoke(
             FunctionName='wishbone-search-lambda',
