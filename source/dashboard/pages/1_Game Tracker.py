@@ -130,8 +130,8 @@ def create_dashboard() -> None:
             if game_filter is not None and game_filter != []:
                 st.session_state['game_filter'] = game_filter
     if search:
-        lambda_input = {"game_inputs": search}
-        asyncio.run(trigger_search_lambda(lambda_input))
+        lambda_name_input = {"game_inputs": search}
+        asyncio.run(trigger_search_lambda(lambda_name_input))
 
     if 'game_filter' not in st.session_state:
         st.session_state['game_filter'] = []
