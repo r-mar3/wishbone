@@ -16,16 +16,28 @@ NUM_PER_PAGE = 10
 @st.cache_data()
 def create_max_price_column() -> pd.DataFrame:
     query = """
-        with price_cte as (select game_id, price, recording_date, platform_id, max(price) over (partition by game_id) as max_price
-        from listing)
-        select g.game_name, price_cte.recording_date, price_cte.price, p.platform_name, price_cte.max_price
-        from price_cte
-        join game g 
-        on price_cte.game_id = g.game_id
-        join platform p 
-        on price_cte.platform_id = p.platform_id
-        where price_cte.price < price_cte.max_price
-        order by price_cte.recording_date desc
+        WITH 
+            price_cte AS 
+            (SELECT game_id, price, recording_date, platform_id, max(price) over (partition by game_id) AS max_price
+        FROM 
+            listing)
+        SELECT 
+            g.game_name, price_cte.recording_date, price_cte.price, p.platform_name, price_cte.max_price
+        FROM 
+            price_cte
+        JOIN 
+            game g 
+        ON 
+            price_cte.game_id = g.game_id
+        JOIN 
+            platform p 
+        ON 
+            price_cte.platform_id = p.platform_id
+        WHERE 
+            price_cte.price < price_cte.max_price
+        ORDER BY 
+            price_cte.recording_date 
+        DESC;
         
 """
     game_id_df = wr.athena.read_sql_query(
@@ -135,6 +147,7 @@ def decrement_page() -> None:
 
 
 def account_button():
+    # TODO: docstring
     _, _, user = st.columns([3, 10, 3])
     with user.expander(st.session_state.username):
         if st.button('Account'):

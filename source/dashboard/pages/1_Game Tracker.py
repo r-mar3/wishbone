@@ -1,24 +1,32 @@
 """Code for the Streamlit dashboard"""
 import streamlit as st
-import boto3
 import awswrangler as wr
 from os import environ
 from dotenv import load_dotenv
 import altair as alt
 import pandas as pd
 from backend import run_unsubscribe, run_subscribe, get_boto3_session
+import aioboto3
+import json
+import asyncio
 
 
 @st.cache_data()
 def get_data() -> pd.DataFrame:
     """queries the Glue DB and returns game data"""
     data = wr.athena.read_sql_query("""
-    select g.game_id,g.game_name, l.price, l.recording_date, p.platform_name
-                                    from listing l
-                                    join game g
-                                    on g.game_id=l.game_id
-                                    join platform p
-                                    on p.platform_id=l.platform_id
+    SELECT 
+        g.game_id,g.game_name, l.price, l.recording_date, p.platform_name
+    FROM 
+        listing l
+    JOIN 
+        game g
+    ON 
+        g.game_id=l.game_id
+    JOIN 
+        platform p
+    ON 
+        p.platform_id=l.platform_id
                                     
 """, database='wishbone-glue-db', boto3_session=session)
 
@@ -85,6 +93,19 @@ def account_button():
             st.switch_page("pages/2_Login.py")
 
 
+async def trigger_search_lambda(payload: dict) -> dict:
+    """Triggers the lambda for mailing list subscription"""
+    async with aioboto3.client('lambda') as client:
+        response = await client.invoke(
+            FunctionName='wishbone-search-lambda',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload)
+        )
+
+    response_payload = await response['Payload'].read()
+    return json.loads(response_payload)
+
+
 def create_dashboard() -> None:
     """calls all of the above functions to create the tracking page of the dashboard"""
     st.set_page_config(page_title="Game Tracker", page_icon="🎮")
@@ -104,8 +125,13 @@ def create_dashboard() -> None:
         with st.expander(label="Choose Games to Track"):
             game_filter = create_game_name_filter()
 
+            search = st.text_input(
+                label="Would you like to add a game to our tracking?")
             if game_filter is not None and game_filter != []:
                 st.session_state['game_filter'] = game_filter
+    if search:
+        lambda_input = {"game_inputs": search}
+        asyncio.run(trigger_search_lambda(lambda_input))
 
     if 'game_filter' not in st.session_state:
         st.session_state['game_filter'] = []
@@ -120,7 +146,7 @@ def create_dashboard() -> None:
     else:
         email = st.text_input('Email')
 
-    games = sub_selects()
+    games = sub_selection()
     sub_button(email, games)
 
     if st.button('Unsubscribe from all'):
