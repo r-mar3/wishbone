@@ -22,6 +22,21 @@ Each folder is a separate Terraform directory, so each requires the terminal com
 
 #### Order of execution:
 - RDS, S3 and ECR created first. This can then be followed by each of the Lambda directories once the ECRs have images pushed up to them. 
+
+### Configuration
+
+The script requires the following environment variables, loaded via a `variables.tf` and `terraform.tfvars` files:  
+
+| Variable | Description |
+|----------|-------------|
+| `RDS_HOST` | RDS database host |
+| `RDS_USER` | Database username |
+| `RDS_PASSWORD` | Database password |
+| `DB_NAME` | Database name |
+| `PORT` | RDS access |
+| `ACCESS_KEY_ID` | AWS access key for Athena queries |
+| `AWS_SECRET_ACCESS_KEY_ID` | AWS secret key for Athena queries |
+| `SENDER_EMAIL` | Email for sending alert emails from |
 ---
 
 
