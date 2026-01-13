@@ -1,3 +1,5 @@
+# Note: This is a fork from the repository that I worked on. The original repository can be found at https://github.com/DevMjee/wishbone . The contributions I made to this repository are the source/terraform and source/dashboard folders, which contain HCL code for creation of all required AWS resources and the code required to create the Streamlit front-end. 
+
 # Wishbone
 
 
